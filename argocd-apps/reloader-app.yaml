@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/BigKAA/youtube'
-    path: Utils/k3s-dev/manifests/reloader
-    targetRevision: master
+    repoURL: 'https://github.com/gen7777/k3s.git'
+    path: /manifests/reloader
+    targetRevision: main
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: kube-system

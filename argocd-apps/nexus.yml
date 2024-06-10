@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgresql
+  name: nexus
   namespace: argo-cd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -9,11 +9,11 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/gen7777/k3s.git'
-    path: manifests/psql/
+    path: manifests/nexus/
     targetRevision: main
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: psql
+    namespace: nexus
   syncPolicy:
     automated:
       prune: true
