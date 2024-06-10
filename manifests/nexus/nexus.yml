@@ -186,4 +186,5 @@ spec:
   tls:
     - hosts:
       - nexus.dpetrenko.ru
+      - repo.dpetrenko.ru
       secretName: nexus-tls
