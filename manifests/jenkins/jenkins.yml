@@ -13,18 +13,8 @@ metadata:
   name: repo.dpetrenko.ru
   namespace: jenkins
 data:
-  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL3JlcG8uZHBldHJlbmtvLnJ1Ijp7InBhc3N3b3JkIjoicDFzc3dvcmQiLCJ1c2VybmFtZSI6ImRvY2tlcnVzciJ9fX0=
+  .dockerconfigjson: eyJhdXRocyI6eyJyZXBvLmRwZXRyZW5rby5ydSI6eyJwYXNzd29yZCI6InAxc3N3b3JkIiwidXNlcm5hbWUiOiJkb2NrZXJ1c3IifX19
 type: kubernetes.io/dockerconfigjson
-
-#---
-#apiVersion: v1
-#kind: Secret
-#metadata:
-#  name: harbor.dpetrenko.ru
-#  namespace: jenkins
-#data:
-#  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2hhcmJvci5kcGV0cmVua28ucnUiOnsicGFzc3dvcmQiOiJwMXNzd09yZF8wIiwidXNlcm5hbWUiOiJkb2NrZXJ1c3IifX19
-#type: kubernetes.io/dockerconfigjson
 
 ---
 apiVersion: v1
