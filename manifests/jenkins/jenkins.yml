@@ -1,0 +1,285 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+  labels:
+    section: tools
+    app: jenkins
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: repo.dpetrenko.ru
+  namespace: jenkins
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL3JlcG8uZHBldHJlbmtvLnJ1Ijp7InBhc3N3b3JkIjoicDFzc3dvcmQiLCJ1c2VybmFtZSI6ImRvY2tlcnVzciJ9fX0=
+type: kubernetes.io/dockerconfigjson
+
+#---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: harbor.dpetrenko.ru
+#  namespace: jenkins
+#data:
+#  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2hhcmJvci5kcGV0cmVua28ucnUiOnsicGFzc3dvcmQiOiJwMXNzd09yZF8wIiwidXNlcm5hbWUiOiJkb2NrZXJ1c3IifX19
+#type: kubernetes.io/dockerconfigjson
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+  namespace: jenkins
+spec:
+  limits:
+  - default:
+      memory: 2Gi
+      cpu: "1"
+    defaultRequest:
+      memory: 256Mi
+      cpu: "0.5"
+    max:
+      memory: 2Gi
+      cpu: "2"
+    type: Container
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-account
+  namespace: jenkins
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: jenkins-role
+rules:
+- resources:
+  - statefulsets
+  - services
+  - replicationcontrollers
+  - replicasets
+  - podtemplates
+  - podsecuritypolicies
+  - pods
+  - pods/log
+  - pods/exec
+  - podpreset
+  - poddisruptionbudget
+  - persistentvolumes
+  - persistentvolumeclaims
+  - jobs
+  - endpoints
+  - deployments
+  - deployments/scale
+  - daemonsets
+  - cronjobs
+  - configmaps
+  - namespaces
+  - events
+  - secrets
+  apiGroups:
+  - ""
+  verbs:
+  - create
+  - get
+  - watch
+  - delete
+  - list
+  - patch
+  - apply
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: jenkins-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: jenkins-role
+subjects:
+- kind: ServiceAccount
+  name: jenkins-account
+  namespace: jenkins
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+    section: tools
+spec:
+  ports:
+    - name: http-port
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: jenkins
+    section: tools
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-0
+  namespace: jenkins
+  labels:
+    app: jenkins
+    section: tools
+spec:
+  ports:
+    - name: http-port
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: jnlp-port
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
+  selector:
+    app: jenkins
+    section: tools
+    statefulset.kubernetes.io/pod-name: jenkins-0
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+    section: tools
+spec:
+  replicas: 1
+  serviceName: jenkins
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        section: tools
+    spec:
+      serviceAccountName: jenkins-account
+      imagePullSecrets:
+        - name: repo.dpetrenko.ru
+      containers:
+      - name: jenkins
+        image: repo.dpetrenko.ru/jenkins-srv:v0.01
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: JAVA_OPTS
+#            value: "-Xms2g -Xmx2g -Djenkins.install.runSetupWizard=false"
+            value: "-Xms2g -Xmx2g"
+          - name: JENKINS_SLAVE_AGENT_PORT
+            value: "50000"
+#            - name: JENKINS_OPTS
+#              value: "--prefix=/jenkins"
+        livenessProbe:
+          httpGet:
+            path: "/prometheus/"
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: "/prometheus/"
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        ports:
+          - name: http-port
+            containerPort: 8080
+          - name: jnlp-port
+            containerPort: 50000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "50m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+        volumeMounts:
+          - name: jenkins-home
+            mountPath: /var/jenkins_home
+  volumeClaimTemplates:
+    - metadata:
+        name: jenkins-home
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "managed-nfs-storage"
+        resources:
+          requests:
+            storage: 8Gi
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+    section: tools
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    cert-manager.io/cluster-issuer: dev-ca-issuer
+    cert-manager.io/common-name: jenkins.dpetrenko.ru
+    cert-manager.io/subject-organizations: "home dev lab"
+    cert-manager.io/subject-countries: "RU"
+    cert-manager.io/subject-localities: "Voronezh"
+    cert-manager.io/duration: "9125h"
+    cert-manager.io/renew-before: "360h"
+    cert-manager.io/usages: "server auth"
+    cert-manager.io/private-key-algorithm: RSA
+    cert-manager.io/private-key-encoding: "PKCS8"
+    cert-manager.io/private-key-size: "4096"
+    cert-manager.io/private-key-rotation-policy: Always
+spec:
+  ingressClassName: "system-ingress"
+  rules:
+    - host: jenkins.dpetrenko.ru
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins-0
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+      - jenkins.dpetrenko.ru
+      secretName: jenkins-tls
