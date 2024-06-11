@@ -6,15 +6,6 @@ metadata:
   labels:
     section: tools
     app: jenkins
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: repo.dpetrenko.ru
-  namespace: jenkins
-data:
-  .dockerconfigjson: eyJhdXRocyI6eyJyZXBvLmRwZXRyZW5rby5ydSI6eyJwYXNzd29yZCI6InAxc3N3b3JkIiwidXNlcm5hbWUiOiJkb2NrZXJ1c3IifX19
-type: kubernetes.io/dockerconfigjson
 
 ---
 apiVersion: v1
