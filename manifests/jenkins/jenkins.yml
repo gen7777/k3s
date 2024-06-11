@@ -237,7 +237,6 @@ spec:
         name: jenkins-home
       spec:
         accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "managed-nfs-storage"
         resources:
           requests:
             storage: 8Gi
