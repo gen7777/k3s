@@ -26,7 +26,7 @@ kubernetes.
 
     # docker login -u docker-user -p password n.kryukov.local
     # cp ~/.docker/config.json ~
-    # kubectl -n jenkins create secret generic kryukov-local \
+    # kubectl -n jenkins create secret generic repo.dpetrenko.ru \
      --from-file=.dockerconfigjson=config.json \
      --type=kubernetes.io/dockerconfigjson
 

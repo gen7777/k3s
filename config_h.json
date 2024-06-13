@@ -1,0 +1,7 @@
+{ 
+ "auths": {
+ "https://harbor.dpetrenko.ru": {
+ "auth": "ZG9ja2VydXNyOnAxc3N3T3JkXzA="
+ }
+ }
+}
