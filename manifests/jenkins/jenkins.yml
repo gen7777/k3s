@@ -1,5 +1,111 @@
 ---
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+  labels:
+    section: tools
+    app: jenkins
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+  namespace: jenkins
+spec:
+  limits:
+  - default:
+      memory: 2Gi
+      cpu: "1"
+    defaultRequest:
+      memory: 256Mi
+      cpu: "0.5"
+    max:
+      memory: 2Gi
+      cpu: "2"
+    type: Container
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-account
+  namespace: jenkins
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: jenkins-role
+rules:
+- resources:
+  - statefulsets
+  - services
+  - replicationcontrollers
+  - replicasets
+  - podtemplates
+  - podsecuritypolicies
+  - pods
+  - pods/log
+  - pods/exec
+  - podpreset
+  - poddisruptionbudget
+  - persistentvolumes
+  - persistentvolumeclaims
+  - jobs
+  - endpoints
+  - deployments
+  - deployments/scale
+  - daemonsets
+  - cronjobs
+  - configmaps
+  - namespaces
+  - events
+  - secrets
+  apiGroups:
+  - ""
+  verbs:
+  - create
+  - get
+  - watch
+  - delete
+  - list
+  - patch
+  - apply
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: jenkins-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: jenkins-role
+subjects:
+- kind: ServiceAccount
+  name: jenkins-account
+  namespace: jenkins
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: jenkins
@@ -17,7 +123,7 @@ spec:
     app: jenkins
     section: tools
   clusterIP: None
-  
+
 ---
 apiVersion: v1
 kind: Service
@@ -57,6 +163,7 @@ spec:
   selector:
     matchLabels:
       app: jenkins
+      section: tools
   template:
     metadata:
       labels:
@@ -64,33 +171,32 @@ spec:
         section: tools
     spec:
       serviceAccountName: jenkins-account
-      imagePullSecrets:
-        - name: repo.dpetrenko.ru
       containers:
       - name: jenkins
         image: repo.dpetrenko.ru/jenkins-srv:v0.01
         imagePullPolicy: IfNotPresent
         env:
           - name: JAVA_OPTS
+#            value: "-Xms2g -Xmx2g -Djenkins.install.runSetupWizard=false"
             value: "-Xms2g -Xmx2g"
           - name: JENKINS_SLAVE_AGENT_PORT
             value: "50000"
-        livenessProbe:
-          httpGet:
-            path: "/prometheus/"
-            port: 8080
-          initialDelaySeconds: 90
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 5
-        readinessProbe:
-          httpGet:
-            path: "/prometheus/"
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+#        livenessProbe:
+#          httpGet:
+#            path: /
+#            port: 8080
+#          initialDelaySeconds: 120
+#          periodSeconds: 20
+#          timeoutSeconds: 10
+#          failureThreshold: 5
+#        readinessProbe:
+#          httpGet:
+#           path: /
+#            port: 8080
+#          initialDelaySeconds: 120
+#          periodSeconds: 20
+#          timeoutSeconds: 10
+#          failureThreshold: 3
         ports:
           - name: http-port
             containerPort: 8080
@@ -106,16 +212,6 @@ spec:
         volumeMounts:
           - name: jenkins-home
             mountPath: /var/jenkins_home
-          - name: ca-certificates
-            mountPath: /usr/local/share/ca-certificates/repo.dpetrenko.ru.crt
-            subPath: repo.dpetrenko.ru.crt
-      initContainers:
-      - name: update-ca-certificates
-        image: busybox
-        command: ['sh', '-c', 'cp /usr/local/share/ca-certificates/repo.dpetrenko.ru.crt /etc/ssl/certs/repo.dpetrenko.ru.crt && update-ca-certificates']
-        volumeMounts:
-          - name: ca-certificates
-            mountPath: /usr/local/share/ca-certificates
   volumeClaimTemplates:
     - metadata:
         name: jenkins-home
@@ -124,10 +220,6 @@ spec:
         resources:
           requests:
             storage: 8Gi
-  volumes:
-    - name: ca-certificates
-      configMap:
-        name: ca-certificates
 
 ---
 apiVersion: networking.k8s.io/v1
