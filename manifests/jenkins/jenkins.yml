@@ -173,7 +173,7 @@ spec:
       serviceAccountName: jenkins-account
       containers:
       - name: jenkins
-        image: repo.dpetrenko.ru/jenkins-srv:v0.01
+        image: repo.dpetrenko.ru/jenkins-srv:v0.2
         imagePullPolicy: IfNotPresent
         env:
           - name: JAVA_OPTS
