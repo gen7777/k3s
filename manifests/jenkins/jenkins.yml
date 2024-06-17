@@ -173,11 +173,11 @@ spec:
       serviceAccountName: jenkins-account
       containers:
       - name: jenkins
-        image: repo.dpetrenko.ru/jenkins-srv:v0.2
+        image: repo.dpetrenko.ru/jenkins-srv:v0.3
         imagePullPolicy: IfNotPresent
         env:
           - name: JAVA_OPTS
-#            value: "-Xms2g -Xmx2g -Djenkins.install.runSetupWizard=false"
+#            value: "-Xms4g -Xmx4g -Djenkins.install.runSetupWizard=false"
             value: "-Xms2g -Xmx2g"
           - name: JENKINS_SLAVE_AGENT_PORT
             value: "50000"

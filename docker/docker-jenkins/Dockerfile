@@ -1,10 +1,10 @@
-FROM jenkins/jenkins:2.452.2-lts
+FROM jenkins/jenkins:lts-jdk17
 
 # Переключаемся на пользователя root для установки зависимостей
 USER root
 
 # Обновляем пакеты и устанавливаем необходимые зависимости
-RUN apt-get update && apt-get install -y wget openjdk-17-jre file
+RUN apt-get update && apt-get install -y wget  file
 
 # Скачиваем plugin-installation-manager-tool и проверяем его целостность
 RUN wget -O /usr/share/jenkins-plugin-manager.jar https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.0/jenkins-plugin-manager-2.13.0.jar \
@@ -16,18 +16,12 @@ USER jenkins
 
 # Список плагинов
 ARG JENKINS_PLUGINS="kubernetes \
-                     kubernetes-pipeline-devops-steps \
                      workflow-job \
                      workflow-aggregator \
                      credentials-binding \
                      configuration-as-code \
                      git \
-                     dark-theme \
-                     prometheus \
-                     harbor \
-                     artifactdeployer \
-                     pipeline-maven \
-                     http_request"
+                     prometheus"
 
 # Создаем файл со списком плагинов
 RUN echo $JENKINS_PLUGINS | tr ' ' '\n' > /tmp/plugins.txt
