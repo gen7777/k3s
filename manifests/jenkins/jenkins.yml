@@ -16,14 +16,14 @@ metadata:
 spec:
   limits:
   - default:
-      memory: 2Gi
-      cpu: "1"
+      memory: 3Gi
+      cpu: "2"
     defaultRequest:
       memory: 2Gi
       cpu: "1"
     max:
-      memory: 4Gi
-      cpu: "2"
+      memory: 6Gi
+      cpu: "3"
     type: Container
 
 ---
@@ -205,10 +205,10 @@ spec:
         resources:
           requests:
             memory: "2Gi"
-            cpu: "1000m"
+            cpu: "1500m"
           limits:
             memory: "4Gi"
-            cpu: "2000m"
+            cpu: "3000m"
         volumeMounts:
           - name: jenkins-home
             mountPath: /var/jenkins_home
