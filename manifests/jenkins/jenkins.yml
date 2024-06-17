@@ -181,22 +181,22 @@ spec:
             value: "-Xms2g -Xmx2g"
           - name: JENKINS_SLAVE_AGENT_PORT
             value: "50000"
-#        livenessProbe:
-#          httpGet:
-#            path: /
-#            port: 8080
-#          initialDelaySeconds: 120
-#          periodSeconds: 20
-#          timeoutSeconds: 10
-#          failureThreshold: 5
-#        readinessProbe:
-#          httpGet:
-#           path: /
-#            port: 8080
-#          initialDelaySeconds: 120
-#          periodSeconds: 20
-#          timeoutSeconds: 10
-#          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: "/prometheus/"
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: "/prometheus/"
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         ports:
           - name: http-port
             containerPort: 8080
