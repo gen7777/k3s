@@ -1,4 +1,4 @@
-FROM jenkins/inbound-agent
+FROM jenkins/inbound-agent:jdk17
 
 ARG user=jenkins
 USER root
