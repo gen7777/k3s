@@ -1,0 +1,53 @@
+kafka:
+  enabled: true
+  replicas: 3
+  storage:
+    type: persistent-claim
+    size: 10Gi
+  metrics:
+    enabled: true
+  configurationOverrides:
+    server:
+      - delete.topic.enable: "true"
+      - auto.create.topics.enable: "false"
+  externalAccess:
+    enabled: true
+    type: LoadBalancer
+
+zookeeper:
+  enabled: true
+  replicas: 3
+  storage:
+    type: persistent-claim
+    size: 5Gi
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: dev-ca-issuer
+    cert-manager.io/common-name: kafka.dpetrenko.ru
+    cert-manager.io/subject-organizations: "home dev lab"
+    cert-manager.io/subject-countries: "RU"
+    cert-manager.io/subject-localities: "Voronezh"
+    cert-manager.io/duration: "9125h"
+    cert-manager.io/renew-before: "360h"
+    cert-manager.io/usages: "server auth"
+    cert-manager.io/private-key-algorithm: RSA
+    cert-manager.io/private-key-encoding: "PKCS8"
+    cert-manager.io/private-key-size: "4096"
+    cert-manager.io/private-key-rotation-policy: Always
+    nginx.ingress.kubernetes.io/proxy-body-size: 1g
+  hosts:
+    - host: kafka.dpetrenko.ru
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kafka
+              port:
+                number: 9092
+  tls:
+    - hosts:
+        - kafka.dpetrenko.ru
+      secretName: kafka-tls
