@@ -1,0 +1,80 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalert-config
+  namespace: monitoring
+data:
+  vmalert.yaml: |
+    groups:
+      - name: example
+        rules:
+          - alert: HighMemoryUsage
+            expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Instance {{ $labels.instance }} memory usage is high"
+              description: "Instance {{ $labels.instance }} memory usage is above 90% ({{ $value }})."
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmalert
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmalert
+  template:
+    metadata:
+      labels:
+        app: vmalert
+    spec:
+      containers:
+      - name: vmalert
+        image: victoriametrics/vmalert:v1.66.1
+        args:
+        - -rule=/config/vmalert.yaml
+        - -datasource.url=http://vm-single.monitoring:8428
+        - -notifier.url=http://alertmanager.monitoring:9093
+        resources:
+            requests:
+              memory: "256Mi"
+              cpu: "0.5"
+              ephemeral-storage: "3Gi"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+              ephemeral-storage: "5Gi"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: config
+        configMap:
+          name: vmalert-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  ports:
+  - port: 8880
+    targetPort: 8880
+    protocol: TCP
+    name: http
+  selector:
+    app: vmalert
+  type: ClusterIP
+

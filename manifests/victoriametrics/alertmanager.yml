@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: 'default'
+    receivers:
+    - name: 'default'
+      email_configs:
+      - to: 'you@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'alertmanager'
+        auth_identity: 'alertmanager@example.com'
+        auth_password: 'password'
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.24.0
+        args:
+        - --config.file=/config/alertmanager.yaml
+        - --storage.path=/alertmanager
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: storage
+          mountPath: /alertmanager
+        resources:
+            requests:
+              memory: "256Mi"
+              cpu: "0.5"
+              ephemeral-storage: "3Gi"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+              ephemeral-storage: "5Gi"
+      volumes:
+      - name: config
+        configMap:
+          name: alertmanager-config
+      - name: storage
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  ports:
+  - port: 9093
+    targetPort: 9093
+    protocol: TCP
+    name: http
+  selector:
+    app: alertmanager
+  type: ClusterIP
+
