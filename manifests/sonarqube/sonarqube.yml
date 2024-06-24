@@ -23,7 +23,7 @@ spec:
       cpu: "0.1"
     max:
       memory: 2Gi
-      cpu: "2"
+      cpu: "0.7"
     type: Container
 
 ---
@@ -92,10 +92,10 @@ spec:
           resources:
             requests:
               memory: "2Gi"
-              cpu: "1"
+              cpu: "0.3"
             limits:
               memory: "2Gi"
-              cpu: "2"
+              cpu: "0.7"
           volumeMounts:
             - mountPath: /opt/sonarqube/data
               name: sonarqube-data
