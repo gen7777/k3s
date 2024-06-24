@@ -29,13 +29,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: vm-sigle
+  name: vm-single
   namespace: monitoring
   labels:
-    app: vm-sigle
+    app: vm-single
 spec:
   selector:
-    app: vm-sigle
+    app: vm-single
   ports:
     - protocol: TCP
       port: 8428
@@ -45,22 +45,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vm-sigle
+  name: vm-single
   namespace: monitoring
   labels:
-    app: vm-sigle
+    app: vm-single
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vm-sigle
+      app: vm-single
   template:
     metadata:
       labels:
-        app: vm-sigle
+        app: vm-single
     spec:
       containers:
-        - name: vm-sigle
+        - name: vm-single
           image: victoriametrics/victoria-metrics:v1.66.1
           ports:
             - containerPort: 8428
@@ -96,11 +96,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: vm-sigle
+  name: vm-single
   namespace: monitoring
   labels:
-    app: vm-sigle
-    section: vm-sigle
+    app: vm-single
+    section: vm-single
   annotations:
     cert-manager.io/cluster-issuer: dev-ca-issuer
     cert-manager.io/common-name: vm.dpetrenko.ru
@@ -125,10 +125,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: vm-sigle
+                name: vm-single
                 port:
                   number: 8428
   tls:
     - hosts:
       - vm.dpetrenko.ru
-      secretName: vm-sigle-tls
+      secretName: vm-single-tls
