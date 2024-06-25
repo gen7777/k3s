@@ -115,7 +115,7 @@ spec:
           service:
             name: alertmanager
             port:
-              number: 80
+              number: 9093
   tls:
   - hosts:
     - alertmanager.dpetrenko.ru

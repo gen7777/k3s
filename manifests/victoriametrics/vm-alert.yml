@@ -104,16 +104,16 @@ metadata:
 spec:
   ingressClassName: "system-ingress"
   rules:
-    - host: vvmalert.dpetrenko.ru
+    - host: vmalert.dpetrenko.ru
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: vm-alert
+                name: vmalert
                 port:
-                  number: 8429
+                  number: 8880
   tls:
     - hosts:
       - vmalert.dpetrenko.ru
