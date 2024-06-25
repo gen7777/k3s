@@ -40,11 +40,11 @@ spec:
           resources:
             requests:
               memory: "512Mi"
-              cpu: "0.5"
+              cpu: "0.256"
               ephemeral-storage: "1Gi"
             limits:
               memory: "1Gi"
-              cpu: "1"
+              cpu: "0.512"
               ephemeral-storage: "2Gi"
           volumeMounts:
             - name: config
